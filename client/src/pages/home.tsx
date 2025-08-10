@@ -36,11 +36,12 @@ export default function Home() {
     enabled: true,
   });
 
-  useEffect(() => {
-    if (gameState.grid.length > 0 && !gameState.isCompleted) {
-      start();
-    }
-  }, [gameState.grid, gameState.isCompleted, start]);
+  // Don't auto-start timer anymore - wait for Start button
+  // useEffect(() => {
+  //   if (gameState.grid.length > 0 && !gameState.isCompleted) {
+  //     start();
+  //   }
+  // }, [gameState.grid, gameState.isCompleted, start]);
 
   useEffect(() => {
     if (gameState.isCompleted) {
