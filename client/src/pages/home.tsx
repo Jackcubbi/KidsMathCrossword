@@ -68,6 +68,15 @@ export default function Home() {
     }
   };
 
+  const handleStartGame = () => {
+    setGameStarted(true);
+    start();
+    toast({
+      title: "Game started!",
+      description: "Timer is now running. Good luck!",
+    });
+  };
+
   const handleGetHint = () => {
     getHint();
     toast({
