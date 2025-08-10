@@ -27,7 +27,7 @@ export default function Home() {
     isValidating
   } = useGameLogic(difficulty);
 
-  const { formattedTime, start, stop, reset } = useTimer();
+  const { formattedTime, start, stop, reset, isRunning } = useTimer();
   const { toast } = useToast();
 
   // Fetch user statistics
