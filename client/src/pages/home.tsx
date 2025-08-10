@@ -14,6 +14,7 @@ export default function Home() {
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
   
   const { 
     gameState, 
