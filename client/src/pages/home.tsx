@@ -88,6 +88,7 @@ export default function Home() {
   const handleReset = () => {
     resetGame();
     reset();
+    setGameStarted(false);
     setShowSuccessModal(false);
     toast({
       title: "Game reset",
