@@ -5,7 +5,10 @@ interface GameControlsProps {
   onCheckSolution: () => void;
   onGetHint: () => void;
   onReset: () => void;
+  onStartGame: () => void;
   isValidating: boolean;
+  isTimerRunning: boolean;
+  gameStarted: boolean;
 }
 
 export function GameControls({
