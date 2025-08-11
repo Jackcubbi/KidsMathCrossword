@@ -1,4 +1,4 @@
-import { CheckCircle, Lightbulb, RotateCcw } from 'lucide-react';
+import { CheckCircle, Lightbulb, RotateCcw, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface GameControlsProps {
