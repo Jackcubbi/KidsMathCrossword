@@ -24,6 +24,16 @@ export function GameControls({
     <div className="bg-card rounded-xl shadow-lg border border-border p-6">
       <h3 className="text-lg font-bold text-card-foreground mb-4">Game Controls</h3>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        {!gameStarted && (
+          <Button
+            onClick={onStartGame}
+            className="bg-green-600 hover:bg-green-700 text-white font-medium px-6"
+            data-testid="button-start-game"
+          >
+            <Play className="mr-2" size={16} />
+            Start Game
+          </Button>
+        )}
         <Button
           onClick={onCheckSolution}
           disabled={isValidating}
