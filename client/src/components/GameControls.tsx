@@ -15,7 +15,10 @@ export function GameControls({
   onCheckSolution,
   onGetHint,
   onReset,
-  isValidating
+  onStartGame,
+  isValidating,
+  isTimerRunning,
+  gameStarted
 }: GameControlsProps) {
   return (
     <div className="bg-card rounded-xl shadow-lg border border-border p-6">
