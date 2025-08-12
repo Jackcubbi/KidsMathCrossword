@@ -34,24 +34,30 @@ export function GameControls({
             Start Game
           </Button>
         )}
-        <Button
-          onClick={onCheckSolution}
-          disabled={isValidating}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6"
-          data-testid="button-check-solution"
-        >
-          <CheckCircle className="mr-2" size={16} />
-          {isValidating ? 'Checking...' : 'Check Solution'}
-        </Button>
-        <Button
-          onClick={onGetHint}
-          variant="secondary"
-          className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium px-6"
-          data-testid="button-get-hint"
-        >
-          <Lightbulb className="mr-2" size={16} />
-          Get Hint
-        </Button>
+        
+        {gameStarted && (
+          <>
+            <Button
+              onClick={onCheckSolution}
+              disabled={isValidating}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6"
+              data-testid="button-check-solution"
+            >
+              <CheckCircle className="mr-2" size={16} />
+              {isValidating ? 'Checking...' : 'Check Solution'}
+            </Button>
+            <Button
+              onClick={onGetHint}
+              variant="secondary"
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium px-6"
+              data-testid="button-get-hint"
+            >
+              <Lightbulb className="mr-2" size={16} />
+              Get Hint
+            </Button>
+          </>
+        )}
+        
         <Button
           onClick={onReset}
           variant="outline"
