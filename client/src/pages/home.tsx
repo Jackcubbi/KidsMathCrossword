@@ -153,7 +153,10 @@ export default function Home() {
               onCheckSolution={handleCheckSolution}
               onGetHint={handleGetHint}
               onReset={handleReset}
+              onStartGame={handleStartGame}
               isValidating={isValidating}
+              isTimerRunning={isRunning}
+              gameStarted={gameStarted}
             />
           </div>
 
