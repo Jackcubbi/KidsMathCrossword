@@ -11,6 +11,7 @@ interface MathGridProps {
   };
   completedEquations: number;
   totalEquations: number;
+  disabled?: boolean;
 }
 
 export function MathGrid({ 
