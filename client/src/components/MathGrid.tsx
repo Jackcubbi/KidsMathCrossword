@@ -19,7 +19,8 @@ export function MathGrid({
   onCellChange, 
   equationStatus, 
   completedEquations, 
-  totalEquations 
+  totalEquations,
+  disabled = false
 }: MathGridProps) {
   const renderCell = (cell: GridCell, row: number, col: number) => {
     const baseClasses = "w-16 h-16 flex items-center justify-center rounded-md border-2";
