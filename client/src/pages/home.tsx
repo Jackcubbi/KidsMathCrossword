@@ -147,6 +147,7 @@ export default function Home() {
               equationStatus={equationStatus}
               completedEquations={completedEquations}
               totalEquations={totalEquations}
+              disabled={!gameStarted}
             />
             
             <GameControls

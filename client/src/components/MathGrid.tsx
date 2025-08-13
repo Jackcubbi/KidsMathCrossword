@@ -64,6 +64,7 @@ export function MathGrid({
               placeholder="?"
               min="-99"
               max="99"
+              disabled={disabled}
               data-testid={`input-cell-${row}-${col}`}
             />
           </div>
