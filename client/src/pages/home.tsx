@@ -51,6 +51,8 @@ export default function Home() {
   }, [gameState.isCompleted, stop]);
 
   const handleCheckSolution = async () => {
+    if (!gameStarted) return;
+    
     const result = await validateSolution();
     if (result) {
       if (result.isValid) {
@@ -66,6 +68,16 @@ export default function Home() {
         });
       }
     }
+  };
+
+  const handleGetHint = () => {
+    if (!gameStarted) return;
+    
+    getHint();
+    toast({
+      title: "Hint provided",
+      description: "One cell has been filled for you.",
+    });
   };
 
   const handleStartGame = () => {
