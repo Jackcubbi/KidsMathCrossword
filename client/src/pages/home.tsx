@@ -111,6 +111,7 @@ export default function Home() {
   const handleNewGame = () => {
     handleReset();
     setShowSuccessModal(false);
+    setGameStarted(false);
   };
 
   const handleDifficultyChange = (newDifficulty: 'easy' | 'medium' | 'hard') => {
@@ -126,9 +127,9 @@ export default function Home() {
   const totalEquations = equationStatus.horizontal.length + equationStatus.vertical.length;
 
   const defaultStats = {
-    totalSolved: stats?.totalSolved || 0,
-    bestTime: stats?.bestTime ? `${Math.floor(stats.bestTime / 60).toString().padStart(2, '0')}:${(stats.bestTime % 60).toString().padStart(2, '0')}` : '00:00',
-    averageTime: stats?.averageTime ? `${Math.floor(stats.averageTime / 60).toString().padStart(2, '0')}:${(stats.averageTime % 60).toString().padStart(2, '0')}` : '00:00',
+    totalSolved: (stats as any)?.totalSolved || 0,
+    bestTime: (stats as any)?.bestTime ? `${Math.floor((stats as any).bestTime / 60).toString().padStart(2, '0')}:${((stats as any).bestTime % 60).toString().padStart(2, '0')}` : '00:00',
+    averageTime: (stats as any)?.averageTime ? `${Math.floor((stats as any).averageTime / 60).toString().padStart(2, '0')}:${((stats as any).averageTime % 60).toString().padStart(2, '0')}` : '00:00',
     hintsUsed: gameState.hintsUsed,
   };
 
