@@ -15,13 +15,13 @@ export default function Home() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  
-  const { 
-    gameState, 
+
+  const {
+    gameState,
     isLoading,
-    updateCell, 
-    validateSolution, 
-    getHint, 
+    updateCell,
+    validateSolution,
+    getHint,
     resetGame,
     getEquationStatus,
     isValidating
@@ -52,7 +52,7 @@ export default function Home() {
 
   const handleCheckSolution = async () => {
     if (!gameStarted) return;
-    
+
     const result = await validateSolution();
     if (result) {
       if (result.isValid) {
@@ -72,7 +72,7 @@ export default function Home() {
 
   const handleGetHint = () => {
     if (!gameStarted) return;
-    
+
     getHint();
     toast({
       title: "Hint provided",
@@ -86,14 +86,6 @@ export default function Home() {
     toast({
       title: "Game started!",
       description: "Timer is now running. Good luck!",
-    });
-  };
-
-  const handleGetHint = () => {
-    getHint();
-    toast({
-      title: "Hint provided",
-      description: "One cell has been filled for you.",
     });
   };
 
@@ -162,7 +154,7 @@ export default function Home() {
               totalEquations={totalEquations}
               disabled={!gameStarted}
             />
-            
+
             <GameControls
               onCheckSolution={handleCheckSolution}
               onGetHint={handleGetHint}
