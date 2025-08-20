@@ -34,7 +34,7 @@ export function GameControls({
             Start Game
           </Button>
         )}
-        
+
         {gameStarted && (
           <>
             <Button
@@ -57,7 +57,7 @@ export function GameControls({
             </Button>
           </>
         )}
-        
+
         <Button
           onClick={onReset}
           variant="outline"

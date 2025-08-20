@@ -14,21 +14,21 @@ interface MathGridProps {
   disabled?: boolean;
 }
 
-export function MathGrid({ 
-  grid, 
-  onCellChange, 
-  equationStatus, 
-  completedEquations, 
+export function MathGrid({
+  grid,
+  onCellChange,
+  equationStatus,
+  completedEquations,
   totalEquations,
   disabled = false
 }: MathGridProps) {
   const renderCell = (cell: GridCell, row: number, col: number) => {
     const baseClasses = "w-16 h-16 flex items-center justify-center rounded-md border-2";
-    
+
     switch (cell.type) {
       case 'number':
         return (
-          <div 
+          <div
             key={`${row}-${col}`}
             className={`${baseClasses} bg-card border-border`}
           >
@@ -37,10 +37,10 @@ export function MathGrid({
             </span>
           </div>
         );
-      
+
       case 'operator':
         return (
-          <div 
+          <div
             key={`${row}-${col}`}
             className={`${baseClasses} bg-muted border-border`}
           >
@@ -49,10 +49,10 @@ export function MathGrid({
             </span>
           </div>
         );
-      
+
       case 'input':
         return (
-          <div 
+          <div
             key={`${row}-${col}`}
             className={`${baseClasses} bg-secondary border-secondary hover:bg-secondary/80 transition-colors cursor-pointer`}
           >
@@ -69,11 +69,11 @@ export function MathGrid({
             />
           </div>
         );
-      
+
       case 'blocked':
       default:
         return (
-          <div 
+          <div
             key={`${row}-${col}`}
             className={`${baseClasses} bg-gray-800 border-gray-700`}
           />
@@ -113,7 +113,7 @@ export function MathGrid({
             <div className="space-y-1">
               {equationStatus.horizontal.map((equation, index) => (
                 <div key={`h-${index}`} className="flex items-center space-x-2">
-                  <div 
+                  <div
                     className={`w-4 h-4 rounded-full ${
                       equation.isValid ? 'bg-primary' : 'bg-muted'
                     }`}
@@ -137,7 +137,7 @@ export function MathGrid({
             <div className="space-y-1">
               {equationStatus.vertical.map((equation, index) => (
                 <div key={`v-${index}`} className="flex items-center space-x-2">
-                  <div 
+                  <div
                     className={`w-4 h-4 rounded-full ${
                       equation.isValid ? 'bg-primary' : 'bg-muted'
                     }`}
