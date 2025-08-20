@@ -1,21 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export default function Landing() {
-  const handleLogin = async () => {
-    try {
-      // In development mode, make a POST request to establish session
-      await apiRequest("POST", "/login");
-
-      // Invalidate auth queries to refetch user data
-      await queryClient.invalidateQueries({ queryKey: ["/auth/user"] });
-
-      // Reload to trigger React Router to show home page
-      window.location.reload();
-    } catch (error) {
-      console.error("Login error:", error);
-    }
+  const handleGetStarted = () => {
+    // No authentication required - direct navigation
+    window.location.href = "/home";
   };  return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10">
       <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-screen">
@@ -68,15 +57,15 @@ export default function Landing() {
             <Button
               size="lg"
               className="w-full md:w-auto px-8 py-4 text-lg font-bold"
-              onClick={handleLogin}
-              data-testid="button-login"
+              onClick={handleGetStarted}
+              data-testid="button-get-started"
             >
-              <i className="fas fa-sign-in-alt mr-2"></i>
+              <i className="fas fa-play mr-2"></i>
               Get Started
             </Button>
 
             <p className="text-sm text-muted-foreground mt-6">
-              Sign in to start solving math crosswords and track your progress!
+              Start solving math crosswords and track your progress!
             </p>
           </CardContent>
         </Card>

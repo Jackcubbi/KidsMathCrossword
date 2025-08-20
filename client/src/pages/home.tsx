@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import Navigation from "@/components/Navigation";
 import CrosswordGrid from "@/components/CrosswordGrid";
 import Timer from "@/components/Timer";
@@ -20,7 +18,6 @@ import { exportToPDF } from "@/lib/pdfExport";
 import type { CrosswordData, UserStats, CrosswordHistory, UserSettings } from "@/types/crossword";
 
 export default function Home() {
-  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [currentCrossword, setCurrentCrossword] = useState<CrosswordData | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -29,72 +26,23 @@ export default function Home() {
   const [completionData, setCompletionData] = useState<{ score: number; time: number } | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 500);
-    }
-  }, [user, authLoading, toast]);
+  // No authentication required - public access
 
   // Fetch user stats
   const { data: stats } = useQuery<UserStats>({
     queryKey: ["/user/stats"],
-    enabled: !!user,
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 500);
-      }
-    },
   });
 
   // Fetch user history
   const { data: history } = useQuery<CrosswordHistory[]>({
     queryKey: ["/user/history"],
-    enabled: !!user && activeTab === "history",
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 500);
-      }
-    },
+    enabled: activeTab === "history",
   });
 
   // Fetch user settings
   const { data: settings } = useQuery<UserSettings>({
     queryKey: ["/user/settings"],
-    enabled: !!user && activeTab === "settings",
-    onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 500);
-      }
-    },
+    enabled: activeTab === "settings",
   });
 
   // Generate new crossword
@@ -224,7 +172,7 @@ export default function Home() {
 
   const handleExportPDF = () => {
     if (!currentCrossword) return;
-    exportToPDF(currentCrossword, user?.firstName || "User");
+    exportToPDF(currentCrossword, "Public User");
   };
 
   const formatTime = (seconds: number): string => {
@@ -233,26 +181,15 @@ export default function Home() {
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      <Navigation user={user} />
+      <Navigation user={{ firstName: 'Public', lastName: 'User', email: 'public@example.com' }} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Math Crossword Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Welcome back! Ready to solve some puzzles?</p>
+        </div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="dashboard" data-testid="tab-dashboard">
@@ -272,7 +209,7 @@ export default function Home() {
           <TabsContent value="dashboard" className="space-y-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold gradient-text mb-4">
-                Welcome Back, {user?.firstName || "User"}! 🎯
+                Welcome to Math Crosswords! 🎯
               </h1>
               <p className="text-lg text-muted-foreground">Ready to solve some fun math puzzles?</p>
             </div>
