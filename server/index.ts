@@ -44,8 +44,26 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    // Log the error for monitoring
+    if (status >= 500) {
+      console.error(`Server Error ${status}:`, err);
+    } else {
+      console.warn(`Client Error ${status}:`, message);
+    }
+
+    // Don't expose internal error details in production
+    const isProduction = process.env.NODE_ENV === 'production';
+    const responseMessage = isProduction && status >= 500 ? "Internal Server Error" : message;
+
+    res.status(status).json({
+      message: responseMessage,
+      ...(isProduction ? {} : { stack: err.stack })
+    });
+
+    // Don't re-throw in production to prevent crash
+    if (!isProduction) {
+      throw err;
+    }
   });
 
   // importantly only setup vite in development and after
@@ -63,8 +81,8 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
 
-  // Use localhost for development on Windows
-  const host = process.env.NODE_ENV === 'development' ? 'localhost' : '0.0.0.0';
+  // Bind to all network interfaces so the dev proxy can reach the server
+  const host = '0.0.0.0';
   const listenOptions: any = { port, host };
 
   // Only use reusePort on non-Windows platforms
@@ -74,5 +92,25 @@ app.use((req, res, next) => {
 
   server.listen(listenOptions, () => {
     log(`serving on ${host}:${port}`);
+  });
+
+  // Handle graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+      console.log('Process terminated');
+      process.exit(0);
+    });
+  });
+
+  // Handle uncaught exceptions and rejections
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
   });
 })();
