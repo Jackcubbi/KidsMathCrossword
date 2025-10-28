@@ -1,5 +1,8 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { initializeDatabase } from "./init-db";
+import { isDatabaseAvailable } from "./db";
 
 const app = express();
 app.use(express.json());
@@ -47,6 +50,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize database if available
+  if (isDatabaseAvailable()) {
+    log('Database connection available', 'database');
+    try {
+      await initializeDatabase();
+      log('Database initialized successfully', 'database');
+    } catch (error) {
+      log(`Database initialization failed: ${error}`, 'database');
+    }
+  } else {
+    log('Running in memory-only mode (no database connection)', 'database');
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
