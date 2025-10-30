@@ -126,14 +126,6 @@ The game generates puzzles where:
 - Sound effects
 - Hint system
 
-## Contributing
-
-This is an educational project. Contributions, issues, and feature requests are welcome!
-
-## License
-
-MIT License - See LICENSE file for details
-
 ## Author
 
 **Rostsin Dev**
