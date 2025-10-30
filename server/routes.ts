@@ -3,15 +3,28 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPuzzleSchema, insertGameStatsSchema } from "@shared/schema";
 import { z } from "zod";
+import { isDatabaseAvailable } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
+  // Health check endpoint
+  app.get("/api/health", async (_req, res) => {
+    const dbStatus = isDatabaseAvailable() ? "connected" : "memory-only";
+    res.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+      uptime: process.uptime(),
+      version: process.env.npm_package_version || "1.0.0"
+    });
+  });
+
   // Get puzzle by difficulty
   app.get("/api/puzzles/:difficulty", async (req, res) => {
     try {
       const { difficulty } = req.params;
       const puzzles = await storage.getPuzzlesByDifficulty(difficulty);
-      
+
       if (puzzles.length === 0) {
         // Generate a new puzzle if none exist
         const generated = await storage.generatePuzzle(difficulty as any);
@@ -47,16 +60,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
       const stats = await storage.getGameStats(userId);
-      
+
       // Calculate aggregated statistics
       const completedGames = stats.filter(s => s.isCompleted);
       const totalSolved = completedGames.length;
       const completionTimes = completedGames
         .map(s => s.completionTime)
         .filter(t => t !== null) as number[];
-      
+
       const bestTime = completionTimes.length > 0 ? Math.min(...completionTimes) : 0;
-      const averageTime = completionTimes.length > 0 ? 
+      const averageTime = completionTimes.length > 0 ?
         Math.round(completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length) : 0;
       const totalHints = stats.reduce((sum, s) => sum + (s.hintsUsed || 0), 0);
 
@@ -88,16 +101,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const updates = req.body;
-      
+
       if (updates.isCompleted) {
         updates.completedAt = new Date();
       }
-      
+
       const gameStats = await storage.updateGameStats(id, updates);
       if (!gameStats) {
         return res.status(404).json({ message: "Game session not found" });
       }
-      
+
       res.json(gameStats);
     } catch (error) {
       res.status(500).json({ message: "Failed to update game session" });
@@ -108,16 +121,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/validate-solution", async (req, res) => {
     try {
       const { grid } = req.body;
-      
+
       // Validate horizontal equations
       const horizontalValid = validateHorizontalEquations(grid);
-      
-      // Validate vertical equations  
+
+      // Validate vertical equations
       const verticalValid = validateVerticalEquations(grid);
-      
-      const isValid = horizontalValid.every(eq => eq.isValid) && 
+
+      const isValid = horizontalValid.every(eq => eq.isValid) &&
                      verticalValid.every(eq => eq.isValid);
-      
+
       res.json({
         isValid,
         horizontalEquations: horizontalValid,
@@ -134,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 function validateHorizontalEquations(grid: any[][]) {
   const equations = [];
-  
+
   // Check rows 0, 2, 4 (equation rows)
   for (const row of [0, 2, 4]) {
     const cells = grid[row];
@@ -143,14 +156,14 @@ function validateHorizontalEquations(grid: any[][]) {
       const operator = cells[1].value;
       const num2 = parseFloat(cells[2].value) || 0;
       const result = parseFloat(cells[4].value) || 0;
-      
+
       let expected = 0;
       if (operator === '+') {
         expected = num1 + num2;
       } else if (operator === '-') {
         expected = num1 - num2;
       }
-      
+
       equations.push({
         row,
         equation: `${num1} ${operator} ${num2} = ${result}`,
@@ -158,13 +171,13 @@ function validateHorizontalEquations(grid: any[][]) {
       });
     }
   }
-  
+
   return equations;
 }
 
 function validateVerticalEquations(grid: any[][]) {
   const equations = [];
-  
+
   // Check columns 0, 2, 4 (equation columns)
   for (const col of [0, 2, 4]) {
     if (grid.length >= 5) {
@@ -172,14 +185,14 @@ function validateVerticalEquations(grid: any[][]) {
       const operator = grid[1][col].value;
       const num2 = parseFloat(grid[2][col].value) || 0;
       const result = parseFloat(grid[4][col].value) || 0;
-      
+
       let expected = 0;
       if (operator === '+') {
         expected = num1 + num2;
       } else if (operator === '-') {
         expected = num1 - num2;
       }
-      
+
       equations.push({
         col,
         equation: `${num1} ${operator} ${num2} = ${result}`,
@@ -187,6 +200,6 @@ function validateVerticalEquations(grid: any[][]) {
       });
     }
   }
-  
+
   return equations;
 }
