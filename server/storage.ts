@@ -2,6 +2,7 @@ import { type User, type InsertUser, type Puzzle, type InsertPuzzle, type GameSt
 import { randomUUID } from "crypto";
 import { db, isDatabaseAvailable } from "./db";
 import { eq } from "drizzle-orm";
+import { generatePuzzle as generatePuzzleAlgorithm } from './puzzleGenerator';
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -198,9 +199,8 @@ export class MemStorage implements IStorage {
   }
 
   async generatePuzzle(difficulty: 'easy' | 'medium' | 'hard'): Promise<{ grid: GridCell[][], solution: GridCell[][] }> {
-    // For now, return the default puzzle regardless of difficulty
-    // In a real implementation, this would generate puzzles algorithmically
-    return this.createDefaultPuzzle();
+    // Use the algorithmic puzzle generator
+    return generatePuzzleAlgorithm(difficulty);
   }
 }
 

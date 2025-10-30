@@ -58,7 +58,7 @@ export function MathGrid({
           >
             <Input
               type="number"
-              value={cell.value === 0 ? '' : cell.value.toString()}
+              value={cell.value === '' || cell.value === null || cell.value === undefined ? '' : cell.value.toString()}
               onChange={(e) => onCellChange(row, col, e.target.value)}
               className="grid-cell-input text-secondary-foreground"
               placeholder="?"
@@ -87,7 +87,7 @@ export function MathGrid({
         <h2 className="text-xl font-bold text-card-foreground">Puzzle Grid</h2>
         <div className="flex space-x-2">
           <div className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-medium">
-            Level 3
+            Level 1
           </div>
           <div className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm">
             <span data-testid="completed-equations">{completedEquations}</span>/
@@ -96,8 +96,11 @@ export function MathGrid({
         </div>
       </div>
 
-      {/* 5x5 Mathematical Grid */}
-      <div className="grid grid-cols-5 gap-1 mx-auto bg-border p-2 rounded-lg w-fit">
+      {/* Dynamic Mathematical Grid (5x5, 7x7, or 9x9) */}
+      <div
+        className="grid gap-1 mx-auto bg-border p-2 rounded-lg w-fit"
+        style={{ gridTemplateColumns: `repeat(${grid[0]?.length || 5}, minmax(0, 1fr))` }}
+      >
         {grid.map((row, rowIndex) =>
           row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))
         )}
