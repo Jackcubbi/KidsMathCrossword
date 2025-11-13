@@ -1,12 +1,29 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
 import { registerRoutes } from "./routes";
 import { initializeDatabase } from "./init-db";
 import { isDatabaseAvailable } from "./db";
+import { setupAuth } from "./auth";
+import { registerAuthRoutes } from "./authRoutes";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Session configuration
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  })
+);
 
 // Simple logging function for production
 function log(message: string, source = "express") {
@@ -63,7 +80,12 @@ app.use((req, res, next) => {
     log('Running in memory-only mode (no database connection)', 'database');
   }
 
-  const server = await registerRoutes(app);
+  const { server, storage } = await registerRoutes(app);
+
+  // Setup authentication
+  setupAuth(app, storage);
+  registerAuthRoutes(app, storage);
+  log('Authentication system initialized', 'auth');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
