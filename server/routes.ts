@@ -4,8 +4,9 @@ import { storage } from "./storage";
 import { insertPuzzleSchema, insertGameStatsSchema } from "@shared/schema";
 import { z } from "zod";
 import { isDatabaseAvailable } from "./db";
+import type { IStorage } from "./storage";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<{ server: Server; storage: IStorage }> {
 
   // Health check endpoint
   app.get("/api/health", async (_req, res) => {
@@ -142,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-  return httpServer;
+  return { server: httpServer, storage };
 }
 
 function validateHorizontalEquations(grid: any[][]) {
