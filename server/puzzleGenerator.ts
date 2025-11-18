@@ -421,17 +421,23 @@ function buildDualEquationGridsFromValues(valueGrid: number[][], config: Difficu
   );
 
   // Helper function for 9x9 given numbers pattern
+  // Randomly select which numbers should be given (visible) vs input
+  // For 9x9 grid, we want about 40-50% of numbers to be given
+  const givenNumbersSet = new Set<string>();
+  const totalNumberCells = 5 * 5; // 5 equations * 5 values per equation
+  const targetGivenCount = Math.floor(totalNumberCells * 0.45); // 45% given
+
+  // Generate random given positions
+  while (givenNumbersSet.size < targetGivenCount) {
+    const randomRow = Math.floor(Math.random() * 5);
+    const randomVal = Math.floor(Math.random() * 5);
+    givenNumbersSet.add(`${randomRow}-${randomVal}`);
+  }
+
+  console.log('9x9 Random given positions:', Array.from(givenNumbersSet).sort());
+
   const isGivenNumber = (eqRowIdx: number, valueIdx: number): boolean => {
-    // Row 0: values at index 1, 3
-    // Row 1: result at index 4
-    // Row 2: values at index 0, 2, 4 (result)
-    // Row 3: values at index 0, 3
-    // Row 4: value at index 1
-    return (eqRowIdx === 0 && (valueIdx === 1 || valueIdx === 3)) ||
-           (eqRowIdx === 1 && valueIdx === 4) ||
-           (eqRowIdx === 2 && (valueIdx === 0 || valueIdx === 2 || valueIdx === 4)) ||
-           (eqRowIdx === 3 && (valueIdx === 0 || valueIdx === 3)) ||
-           (eqRowIdx === 4 && valueIdx === 1);
+    return givenNumbersSet.has(`${eqRowIdx}-${valueIdx}`);
   };
 
   // First, compute horizontal operators for each row
@@ -613,35 +619,32 @@ function buildGridsFromRows(allRows: Array<{ values: number[]; operators: string
   // Generate simple vertical operators for display (backwards compatibility)
   const vOps: string[] = verticalOperators.map(ops => ops[0] || '+');
 
-  // Helper function to determine if a cell should be a given number
-  // Parameters: eqRowIdx (equation row index 0,1,2...), valueIdx (value index within row 0,1,2...)
-  const isGivenNumber = (eqRowIdx: number, valueIdx: number): boolean => {
-    const middleRowIdx = Math.floor(numEqRows / 2);
-    const middleValIdx = Math.floor(numValues / 2);
+  // Randomly select which numbers should be given (visible) vs input
+  // Different percentages for different grid sizes
+  const givenNumbersSet = new Set<string>();
+  const totalNumberCells = numEqRows * numValues;
+  let targetGivenCount: number;
 
-    if (size === 5) {
-      // 5x5: First value (eq row 0, val 0) and last result (eq row 2, val 2)
-      return (eqRowIdx === 0 && valueIdx === 0) || (eqRowIdx === numEqRows - 1 && valueIdx === numValues - 1);
-    } else if (size === 7) {
-      // 7x7: Four given numbers
-      return (eqRowIdx === 0 && valueIdx === 0) ||                              // Top-left
-             (eqRowIdx === 0 && valueIdx === numValues - 1) ||                  // Top-right (result)
-             (eqRowIdx === middleRowIdx && valueIdx === middleValIdx) ||        // Center
-             (eqRowIdx === numEqRows - 1 && valueIdx === numValues - 1);        // Bottom-right (result)
-    } else if (size === 9) {
-      // 9x9: Nine given numbers in specific pattern
-      // Row 0: values at index 1, 3
-      // Row 1: result at index 4
-      // Row 2: values at index 0, 2, 4 (result)
-      // Row 3: values at index 0, 3
-      // Row 4: value at index 1
-      return (eqRowIdx === 0 && (valueIdx === 1 || valueIdx === 3)) ||         // Row 0: 2nd and 4th values
-             (eqRowIdx === 1 && valueIdx === 4) ||                              // Row 1: result
-             (eqRowIdx === 2 && (valueIdx === 0 || valueIdx === 2 || valueIdx === 4)) || // Row 2: 1st, 3rd (middle), result
-             (eqRowIdx === 3 && (valueIdx === 0 || valueIdx === 3)) ||          // Row 3: 1st and 4th
-             (eqRowIdx === 4 && valueIdx === 1);                                // Row 4: 2nd value
-    }
-    return false;
+  if (size === 5) {
+    targetGivenCount = Math.floor(totalNumberCells * 0.35); // 35% given for easy puzzles
+  } else if (size === 7) {
+    targetGivenCount = Math.floor(totalNumberCells * 0.40); // 40% given for medium puzzles
+  } else {
+    targetGivenCount = Math.floor(totalNumberCells * 0.45); // 45% given for hard puzzles
+  }
+
+  // Generate random given positions
+  while (givenNumbersSet.size < targetGivenCount) {
+    const randomRow = Math.floor(Math.random() * numEqRows);
+    const randomVal = Math.floor(Math.random() * numValues);
+    givenNumbersSet.add(`${randomRow}-${randomVal}`);
+  }
+
+  console.log(`${size}x${size} Random given positions:`, Array.from(givenNumbersSet).sort());
+
+  // Helper function to determine if a cell should be a given number
+  const isGivenNumber = (eqRowIdx: number, valueIdx: number): boolean => {
+    return givenNumbersSet.has(`${eqRowIdx}-${valueIdx}`);
   };
 
   // Build the grids - initialize ALL cells as blocked first
@@ -892,6 +895,28 @@ function attemptPuzzleGeneration(config: DifficultyConfig): { grid: GridCell[][]
 
   console.log(`SUCCESS: Generated ${size}x${size} puzzle with ${numEqRows} equation rows`);
 
+  // Randomly select which numbers should be given (visible) vs input
+  const givenNumbersSet = new Set<string>();
+  const totalNumberCells = numEqRows * numValues;
+  let targetGivenCount: number;
+
+  if (size === 5) {
+    targetGivenCount = Math.floor(totalNumberCells * 0.35); // 35% given for easy puzzles
+  } else if (size === 7) {
+    targetGivenCount = Math.floor(totalNumberCells * 0.40); // 40% given for medium puzzles
+  } else {
+    targetGivenCount = Math.floor(totalNumberCells * 0.45); // 45% given for hard puzzles
+  }
+
+  // Generate random given positions
+  while (givenNumbersSet.size < targetGivenCount) {
+    const randomEqRow = Math.floor(Math.random() * numEqRows);
+    const randomVal = Math.floor(Math.random() * numValues);
+    givenNumbersSet.add(`${randomEqRow}-${randomVal}`);
+  }
+
+  console.log(`${size}x${size} Random given positions:`, Array.from(givenNumbersSet).sort());
+
   // Build the grids - initialize ALL cells as blocked first
   const grid: GridCell[][] = Array(size).fill(null).map((_, row) =>
     Array(size).fill(null).map((_, col) => ({
@@ -931,30 +956,8 @@ function attemptPuzzleGeneration(config: DifficultyConfig): { grid: GridCell[][]
       const middleRowIdx = Math.floor(numEqRows / 2);
       const middleValIdx = Math.floor(numValues / 2);
 
-      // Determine if this cell should be a given number (N) or input
-      let isGiven = false;
-      if (size === 5) {
-        // 5x5: First value and last result
-        isGiven = (isFirst && i === 0) || (isLast && isResultColumn);
-      } else if (size === 7) {
-        // 7x7: Four corners
-        isGiven = (eqIdx === 0 && i === 0) ||                       // Top-left
-                  (eqIdx === 0 && isResultColumn) ||                // Top-right result
-                  (eqIdx === middleRowIdx && i === middleValIdx) ||  // Center
-                  (eqIdx === numEqRows - 1 && isResultColumn);      // Bottom-right result
-      } else if (size === 9) {
-        // 9x9: Nine given numbers in specific pattern per screenshot
-        // Row 0: values at index 1, 3
-        // Row 1: result at index 4
-        // Row 2: values at index 0, 2, 4 (result)
-        // Row 3: values at index 0, 3
-        // Row 4: value at index 1
-        isGiven = (eqIdx === 0 && (i === 1 || i === 3)) ||                      // Row 0: 2nd and 4th values
-                  (eqIdx === 1 && i === 4) ||                                    // Row 1: result
-                  (eqIdx === 2 && (i === 0 || i === 2 || i === 4)) ||           // Row 2: 1st, 3rd (middle), result
-                  (eqIdx === 3 && (i === 0 || i === 3)) ||                      // Row 3: 1st and 4th
-                  (eqIdx === 4 && i === 1);                                      // Row 4: 2nd value
-      }
+      // Determine if this cell should be a given number using random selection
+      const isGiven = givenNumbersSet.has(`${eqIdx}-${i}`);
 
       grid[row][col] = {
         type: isGiven ? 'number' : 'input',
