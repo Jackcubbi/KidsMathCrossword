@@ -24,22 +24,15 @@ export async function registerRoutes(app: Express): Promise<{ server: Server; st
   app.get("/api/puzzles/:difficulty", async (req, res) => {
     try {
       const { difficulty } = req.params;
-      const puzzles = await storage.getPuzzlesByDifficulty(difficulty);
 
-      if (puzzles.length === 0) {
-        // Generate a new puzzle if none exist
-        const generated = await storage.generatePuzzle(difficulty as any);
-        const newPuzzle = await storage.createPuzzle({
-          difficulty,
-          grid: generated.grid,
-          solution: generated.solution,
-        });
-        res.json(newPuzzle);
-      } else {
-        // Return a random puzzle from the available ones
-        const randomPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
-        res.json(randomPuzzle);
-      }
+      // Always generate a fresh puzzle with random given numbers pattern
+      const generated = await storage.generatePuzzle(difficulty as any);
+      const newPuzzle = await storage.createPuzzle({
+        difficulty,
+        grid: generated.grid,
+        solution: generated.solution,
+      });
+      res.json(newPuzzle);
     } catch (error) {
       res.status(500).json({ message: "Failed to get puzzle" });
     }
@@ -132,12 +125,19 @@ export async function registerRoutes(app: Express): Promise<{ server: Server; st
       const isValid = horizontalValid.every(eq => eq.isValid) &&
                      verticalValid.every(eq => eq.isValid);
 
+      // Log validation results for debugging
+      console.log('Validation Results:');
+      console.log('Horizontal:', horizontalValid);
+      console.log('Vertical:', verticalValid);
+      console.log('All Valid:', isValid);
+
       res.json({
         isValid,
         horizontalEquations: horizontalValid,
         verticalEquations: verticalValid
       });
     } catch (error) {
+      console.error('Validation error:', error);
       res.status(500).json({ message: "Failed to validate solution" });
     }
   });
@@ -148,29 +148,73 @@ export async function registerRoutes(app: Express): Promise<{ server: Server; st
 
 function validateHorizontalEquations(grid: any[][]) {
   const equations = [];
+  const gridSize = grid.length;
 
-  // Check rows 0, 2, 4 (equation rows)
-  for (const row of [0, 2, 4]) {
-    const cells = grid[row];
-    if (cells.length >= 5) {
-      const num1 = parseFloat(cells[0].value) || 0;
-      const operator = cells[1].value;
-      const num2 = parseFloat(cells[2].value) || 0;
-      const result = parseFloat(cells[4].value) || 0;
+  // Helper function to evaluate with order of operations
+  const evaluateEquation = (values: number[], operators: string[]): number => {
+    let nums = [...values];
+    let ops = [...operators];
 
-      let expected = 0;
-      if (operator === '+') {
-        expected = num1 + num2;
-      } else if (operator === '-') {
-        expected = num1 - num2;
+    // First pass: handle * and /
+    for (let i = 0; i < ops.length; i++) {
+      if (ops[i] === '*' || ops[i] === '/') {
+        const result = ops[i] === '*' ? nums[i] * nums[i + 1] : nums[i] / nums[i + 1];
+        nums.splice(i, 2, result);
+        ops.splice(i, 1);
+        i--;
       }
-
-      equations.push({
-        row,
-        equation: `${num1} ${operator} ${num2} = ${result}`,
-        isValid: expected === result && !isNaN(expected) && !isNaN(result)
-      });
     }
+
+    // Second pass: handle + and -
+    let result = nums[0];
+    for (let i = 0; i < ops.length; i++) {
+      result = ops[i] === '+' ? result + nums[i + 1] : result - nums[i + 1];
+    }
+    return result;
+  };
+
+  // Check all equation rows (0, 2, 4, 6, 8... all even rows)
+  for (let row = 0; row < gridSize; row += 2) {
+    const cells = grid[row];
+    if (!cells || cells.length === 0) continue;
+
+    // Collect all values and operators from the row
+    const values: number[] = [];
+    const operators: string[] = [];
+
+    for (let col = 0; col < cells.length; col++) {
+      const cell = cells[col];
+      if (!cell) continue;
+
+      if (cell.type === 'number' || cell.type === 'input') {
+        values.push(parseFloat(cell.value) || 0);
+      } else if (cell.type === 'operator' && cell.value !== '=') {
+        operators.push(cell.value);
+      }
+    }
+
+    // Need at least 2 values and 1 operator to make an equation
+    if (values.length < 2 || operators.length < 1) continue;
+
+    // The last value is the result
+    const result = values[values.length - 1];
+    const equationValues = values.slice(0, -1);
+
+    // Calculate expected result with proper order of operations
+    const expected = evaluateEquation(equationValues, operators);
+
+    // Build equation string
+    let equation = equationValues[0].toString();
+    for (let i = 0; i < operators.length && i < equationValues.length - 1; i++) {
+      equation += ` ${operators[i]} ${equationValues[i + 1]}`;
+    }
+    equation += ` = ${result}`;
+
+    equations.push({
+      row,
+      equation,
+      isValid: Math.abs(expected - result) < 0.001 && !isNaN(expected) && !isNaN(result)
+    });
   }
 
   return equations;
@@ -178,28 +222,78 @@ function validateHorizontalEquations(grid: any[][]) {
 
 function validateVerticalEquations(grid: any[][]) {
   const equations = [];
+  const gridSize = grid.length;
+  const colSize = grid[0]?.length || 0;
 
-  // Check columns 0, 2, 4 (equation columns)
-  for (const col of [0, 2, 4]) {
-    if (grid.length >= 5) {
-      const num1 = parseFloat(grid[0][col].value) || 0;
-      const operator = grid[1][col].value;
-      const num2 = parseFloat(grid[2][col].value) || 0;
-      const result = parseFloat(grid[4][col].value) || 0;
+  // Helper function to evaluate with order of operations
+  const evaluateEquation = (values: number[], operators: string[]): number => {
+    let nums = [...values];
+    let ops = [...operators];
 
-      let expected = 0;
-      if (operator === '+') {
-        expected = num1 + num2;
-      } else if (operator === '-') {
-        expected = num1 - num2;
+    // First pass: handle * and /
+    for (let i = 0; i < ops.length; i++) {
+      if (ops[i] === '*' || ops[i] === '/') {
+        const result = ops[i] === '*' ? nums[i] * nums[i + 1] : nums[i] / nums[i + 1];
+        nums.splice(i, 2, result);
+        ops.splice(i, 1);
+        i--;
+      }
+    }
+
+    // Second pass: handle + and -
+    let result = nums[0];
+    for (let i = 0; i < ops.length; i++) {
+      result = ops[i] === '+' ? result + nums[i + 1] : result - nums[i + 1];
+    }
+    return result;
+  };
+
+  // Check all equation columns (0, 2, 4, 6, 8... all even columns)
+  for (let col = 0; col < colSize; col += 2) {
+    // Collect all values and operators from the column
+    // Only iterate through even rows (0, 2, 4, 6...) for equation rows
+    const values: number[] = [];
+    const operators: string[] = [];
+
+    for (let row = 0; row < gridSize; row += 2) {
+      const cell = grid[row]?.[col];
+      if (!cell) continue;
+
+      if (cell.type === 'number' || cell.type === 'input') {
+        values.push(parseFloat(cell.value) || 0);
       }
 
-      equations.push({
-        col,
-        equation: `${num1} ${operator} ${num2} = ${result}`,
-        isValid: expected === result && !isNaN(expected) && !isNaN(result)
-      });
+      // Get operator from the next row (odd row) if it exists
+      if (row + 1 < gridSize) {
+        const opCell = grid[row + 1]?.[col];
+        if (opCell && opCell.type === 'operator' && opCell.value !== '=') {
+          operators.push(opCell.value);
+        }
+      }
     }
+
+    // Need at least 2 values and 1 operator to make an equation
+    if (values.length < 2 || operators.length < 1) continue;
+
+    // The last value is the result
+    const result = values[values.length - 1];
+    const equationValues = values.slice(0, -1);
+
+    // Calculate expected result with proper order of operations
+    const expected = evaluateEquation(equationValues, operators);
+
+    // Build equation string
+    let equation = equationValues[0].toString();
+    for (let i = 0; i < operators.length && i < equationValues.length - 1; i++) {
+      equation += ` ${operators[i]} ${equationValues[i + 1]}`;
+    }
+    equation += ` = ${result}`;
+
+    equations.push({
+      col,
+      equation,
+      isValid: Math.abs(expected - result) < 0.001 && !isNaN(expected) && !isNaN(result)
+    });
   }
 
   return equations;
