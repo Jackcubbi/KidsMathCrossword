@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { GameHeader } from '@/components/GameHeader';
 import { MathGrid } from '@/components/MathGrid';
 import { GameControls } from '@/components/GameControls';
@@ -9,12 +10,14 @@ import { SettingsModal } from '@/components/SettingsModal';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import { useTimer } from '@/hooks/useTimer';
 import { useToast } from '@/hooks/use-toast';
+import type { GridCell } from '@shared/schema';
 
 export default function Home() {
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [hasShownSuccessModal, setHasShownSuccessModal] = useState(false);
 
   const {
     gameState,
@@ -36,6 +39,24 @@ export default function Home() {
     enabled: true,
   });
 
+  // Create placeholder grid that shows structure but hides numbers
+  const createPlaceholderGrid = (actualGrid: GridCell[][]) => {
+    if (!actualGrid || actualGrid.length === 0) return [];
+    return actualGrid.map((row, rowIdx) =>
+      row.map((cell, colIdx) => ({
+        ...cell,
+        // Keep operators, equals, and blocked cells visible
+        // But replace numbers with empty string for placeholder
+        value: cell.type === 'number' ? '' : cell.value,
+        row: rowIdx,
+        col: colIdx
+      }))
+    );
+  };
+
+  // Use placeholder grid when game hasn't started
+  const displayGrid = gameStarted ? gameState.grid : createPlaceholderGrid(gameState.grid);
+
   // Don't auto-start timer anymore - wait for Start button
   // useEffect(() => {
   //   if (gameState.grid.length > 0 && !gameState.isCompleted) {
@@ -46,9 +67,8 @@ export default function Home() {
   useEffect(() => {
     if (gameState.isCompleted) {
       stop();
-      setShowSuccessModal(true);
     }
-  }, [gameState.isCompleted, stop]);
+  }, [gameState.isCompleted]);
 
   const handleCheckSolution = async () => {
     if (!gameStarted) return;
@@ -56,6 +76,11 @@ export default function Home() {
     const result = await validateSolution();
     if (result) {
       if (result.isValid) {
+        // Stop the timer when puzzle is completed
+        stop();
+        // Show the success modal and mark as shown
+        setShowSuccessModal(true);
+        setHasShownSuccessModal(true);
         toast({
           title: "Congratulations!",
           description: "All equations are correct!",
@@ -94,6 +119,7 @@ export default function Home() {
     reset();
     setGameStarted(false);
     setShowSuccessModal(false);
+    setHasShownSuccessModal(false);
     toast({
       title: "Game reset",
       description: "The puzzle has been reset to its initial state.",
@@ -101,9 +127,20 @@ export default function Home() {
   };
 
   const handleNewGame = () => {
-    handleReset();
+    // Stop and reset timer first to ensure clean state
+    stop();
+    reset();
+
+    // Invalidate the puzzle query to fetch a new puzzle
+    queryClient.invalidateQueries({ queryKey: ['/api/puzzles', difficulty] });
     setShowSuccessModal(false);
+    setHasShownSuccessModal(false);
     setGameStarted(false);
+
+    toast({
+      title: "New puzzle loaded!",
+      description: "Click Start Game when you're ready.",
+    });
   };
 
   const handleDifficultyChange = (newDifficulty: 'easy' | 'medium' | 'hard') => {
@@ -147,14 +184,17 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3 space-y-6">
             <MathGrid
-              grid={gameState.grid}
+              grid={displayGrid}
               onCellChange={updateCell}
               equationStatus={equationStatus}
               completedEquations={completedEquations}
               totalEquations={totalEquations}
               disabled={!gameStarted}
+              difficulty={difficulty}
             />
+          </div>
 
+          <div className="lg:col-span-1 space-y-8">
             <GameControls
               onCheckSolution={handleCheckSolution}
               onGetHint={handleGetHint}
@@ -164,11 +204,10 @@ export default function Home() {
               isTimerRunning={isRunning}
               gameStarted={gameStarted}
             />
+            <GameSidebar
+              stats={defaultStats}
+            />
           </div>
-
-          <GameSidebar
-            stats={defaultStats}
-          />
         </div>
       </main>
 
