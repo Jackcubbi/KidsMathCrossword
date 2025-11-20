@@ -29,6 +29,18 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
     },
   });
 
+  // Create game session mutation
+  const createGameSessionMutation = useMutation({
+    mutationFn: async (puzzleId: string) => {
+      const response = await apiRequest('POST', '/api/game-sessions', {
+        puzzleId,
+        hintsUsed: 0,
+        isCompleted: false,
+      });
+      return response.json();
+    },
+  });
+
   // Update game session mutation
   const updateGameSessionMutation = useMutation({
     mutationFn: async (updates: any) => {
@@ -48,6 +60,13 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
         ),
         startTime: Date.now(),
       }));
+
+      // Create a game session for tracking stats
+      createGameSessionMutation.mutateAsync(puzzle.id).then((session) => {
+        setGameSessionId(session.id);
+      }).catch((error) => {
+        console.error('Failed to create game session:', error);
+      });
     }
   }, [puzzle]);
 
@@ -92,6 +111,9 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
           completionTime,
           hintsUsed: gameState.hintsUsed,
         });
+
+        // Invalidate stats query to update the sidebar
+        queryClient.invalidateQueries({ queryKey: ['/api/stats', 'default-user'] });
       }
 
       return result;
@@ -104,17 +126,25 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
   const getHint = () => {
     if (!puzzle || !puzzle.solution) return;
 
-    // Find first empty editable cell and provide its solution
+    // Collect all empty editable cells
+    const emptyCells: { row: number; col: number }[] = [];
     for (let row = 0; row < gameState.grid.length; row++) {
       for (let col = 0; col < gameState.grid[row].length; col++) {
         const cell = gameState.grid[row][col];
-        if (cell.isEditable && (cell.value === '' || cell.value === 0)) {
-          const solutionValue = puzzle.solution[row][col].value;
-          updateCell(row, col, solutionValue.toString());
-          setGameState(prev => ({ ...prev, hintsUsed: prev.hintsUsed + 1 }));
-          return;
+        // Only check for empty string, not 0 (which is a valid value)
+        if (cell.isEditable && cell.value === '') {
+          emptyCells.push({ row, col });
         }
       }
+    }
+
+    // If there are empty cells, randomly select one and fill it
+    if (emptyCells.length > 0) {
+      const randomIndex = Math.floor(Math.random() * emptyCells.length);
+      const { row, col } = emptyCells[randomIndex];
+      const solutionValue = puzzle.solution[row][col].value;
+      updateCell(row, col, solutionValue.toString());
+      setGameState(prev => ({ ...prev, hintsUsed: prev.hintsUsed + 1 }));
     }
   };
 
