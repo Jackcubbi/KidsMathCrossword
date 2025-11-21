@@ -1,7 +1,7 @@
 import { type User, type InsertUser, type Puzzle, type InsertPuzzle, type GameStats, type InsertGameStats, type GridCell, type CellType, users, puzzles, gameStats } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db, isDatabaseAvailable } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { generatePuzzle as generatePuzzleAlgorithm } from './puzzleGenerator';
 
 export interface IStorage {
@@ -169,7 +169,7 @@ export class MemStorage implements IStorage {
 
   async getGameStats(userId: string): Promise<GameStats[]> {
     return Array.from(this.gameStats.values()).filter(
-      (stats) => stats.userId === userId
+      (stats) => userId === 'default-user' ? stats.userId === null || stats.userId === userId : stats.userId === userId
     );
   }
 
@@ -256,6 +256,14 @@ export class DatabaseStorage implements IStorage {
 
   async getGameStats(userId: string): Promise<GameStats[]> {
     if (!db) return this.memStorage.getGameStats(userId);
+
+    // For guest users (default-user), get stats where userId is null
+    if (userId === 'default-user') {
+      const result = await db.select().from(gameStats).where(
+        sql`${gameStats.userId} IS NULL`
+      );
+      return result;
+    }
 
     const result = await db.select().from(gameStats).where(eq(gameStats.userId, userId));
     return result;
