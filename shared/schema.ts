@@ -46,7 +46,7 @@ export const insertGameStatsSchema = createInsertSchema(gameStats).pick({
   hintsUsed: true,
   isCompleted: true,
   completedAt: true,
-});
+}).partial({ userId: true, completionTime: true, completedAt: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
