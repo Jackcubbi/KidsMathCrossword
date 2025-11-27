@@ -21,7 +21,7 @@ export function SuccessModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-4" data-testid="success-modal">
         <div className="text-center">
-          <div className="bg-primary text-primary-foreground rounded-full p-4 w-16 h-16 mx-auto mb-4">
+          <div className="bg-primary text-primary-foreground rounded-full p-5 w-16 h-16 mx-auto mb-4">
             <Trophy className="text-2xl" />
           </div>
           <DialogHeader>
@@ -32,11 +32,11 @@ export function SuccessModal({
               Great job! You solved all equations correctly.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="bg-muted rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Time:</span>
-              <span 
+              <span
                 className="font-mono font-bold text-card-foreground"
                 data-testid="completion-time"
               >
@@ -45,7 +45,7 @@ export function SuccessModal({
             </div>
             <div className="flex items-center justify-between mt-2">
               <span className="text-muted-foreground">Hints Used:</span>
-              <span 
+              <span
                 className="font-bold text-card-foreground"
                 data-testid="hints-used-in-game"
               >
