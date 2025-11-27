@@ -26,8 +26,8 @@ export function GameHeader({ formattedTime, onSettingsClick }: GameHeaderProps) 
               <MathCrosswordLogo size={28} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">KidsMath Cross Demo</h1>
-              <p className="text-muted-foreground text-sm">Solve the equations in the grid</p>
+              <h1 className="text-2xl font-bold text-foreground">KidsMath Cross</h1>
+              <p className="text-sm text-muted-foreground">Fun Math Puzzles for Kids</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -77,12 +77,7 @@ function UserMenu() {
         >
           Sign In
         </Button>
-        <Button
-          size="sm"
-          onClick={() => window.location.href = '/register'}
-        >
-          Register
-        </Button>
+
       </div>
     );
   }
