@@ -1,3 +1,4 @@
+import { useAuth } from '@/contexts/AuthContext';
 interface GameSidebarProps {
   stats: {
     totalSolved: number;
@@ -8,8 +9,10 @@ interface GameSidebarProps {
 }
 
 export function GameSidebar({
+
   stats
 }: GameSidebarProps) {
+  const { isAuthenticated} = useAuth();
   return (
     <div className="space-y-6">
       {/* Game Statistics */}
@@ -22,18 +25,22 @@ export function GameSidebar({
               {stats.totalSolved}
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Best Time</span>
-            <span className="font-mono font-bold text-card-foreground" data-testid="stat-best-time">
-              {stats.bestTime}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Average Time</span>
-            <span className="font-mono font-bold text-card-foreground" data-testid="stat-average-time">
-              {stats.averageTime}
-            </span>
-          </div>
+          {isAuthenticated && (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Best Time</span>
+                <span className="font-mono font-bold text-card-foreground" data-testid="stat-best-time">
+                  {stats.bestTime}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Average Time</span>
+                <span className="font-mono font-bold text-card-foreground" data-testid="stat-average-time">
+                  {stats.averageTime}
+                </span>
+              </div>
+            </>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Hints Used</span>
             <span className="font-bold text-card-foreground" data-testid="stat-hints-used">
