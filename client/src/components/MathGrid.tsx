@@ -12,6 +12,7 @@ interface MathGridProps {
   completedEquations: number;
   totalEquations: number;
   disabled?: boolean;
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export function MathGrid({
@@ -20,8 +21,24 @@ export function MathGrid({
   equationStatus,
   completedEquations,
   totalEquations,
-  disabled = false
+  disabled = false,
+  difficulty = 'medium'
 }: MathGridProps) {
+  // Get difficulty description based on grid size and difficulty level
+  const getDifficultyDescription = () => {
+    const gridSize = grid.length;
+    const difficultyName = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
+    if (gridSize === 5) {
+      return `${difficultyName}: - Basic operations`;
+    } else if (gridSize === 7) {
+      return `${difficultyName}: - Mixed operations`;
+    } else if (gridSize === 9) {
+      return `${difficultyName}:  - Advanced equations`;
+    }
+    return `${difficultyName}\n${gridSize}x${gridSize} grid`;
+  };
+
   const renderCell = (cell: GridCell, row: number, col: number) => {
     const baseClasses = "w-16 h-16 flex items-center justify-center rounded-md border-2";
 
@@ -52,6 +69,7 @@ export function MathGrid({
 
       case 'input':
         return (
+
           <div
             key={`${row}-${col}`}
             className={`${baseClasses} bg-secondary border-secondary hover:bg-secondary/80 transition-colors cursor-pointer`}
@@ -85,6 +103,7 @@ export function MathGrid({
     <div className="bg-card rounded-xl shadow-lg border border-border p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-card-foreground">Puzzle Grid</h2>
+        <p className="text-muted-foreground text-md whitespace-pre-line">{getDifficultyDescription()}</p>
         <div className="flex space-x-2">
           <div className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-medium">
             Level 1
