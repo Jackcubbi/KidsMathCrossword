@@ -23,7 +23,7 @@ export function GameControls({
   return (
     <div className="bg-card rounded-xl shadow-lg border border-border p-6">
       <h3 className="text-lg font-bold text-card-foreground mb-4">Game Controls</h3>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <div className="flex flex-col sm:flex-col gap-3 justify-center">
         {!gameStarted && (
           <Button
             onClick={onStartGame}
