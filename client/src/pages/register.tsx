@@ -7,9 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle2, UserPlus } from "lucide-react";
 import { MathCrosswordLogo } from "@/components/ui/MathCrosswordLogo";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -40,9 +44,13 @@ export default function RegisterPage() {
 
     try {
       await register(username, password);
+      toast({
+        title: "Registration successful!",
+        description: `Welcome to Math Crossword, ${username}!`,
+      });
+      setTimeout(() => setLocation("/"), 500);
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
