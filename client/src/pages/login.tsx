@@ -7,9 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, LogIn } from "lucide-react";
 import { MathCrosswordLogo } from "@/components/ui/MathCrosswordLogo";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,9 +26,13 @@ export default function LoginPage() {
 
     try {
       await login(username, password);
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully logged in.",
+      });
+      setTimeout(() => setLocation("/"), 500);
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
