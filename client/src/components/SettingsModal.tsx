@@ -41,7 +41,7 @@ export function SettingsModal({
                 <Label htmlFor="easy" className="flex-1 cursor-pointer">
                   <div>
                     <span className="font-medium text-card-foreground">Easy</span>
-                    <p className="text-sm text-muted-foreground">5x5 grid, mixed operations</p>
+                    <p className="text-sm text-muted-foreground">5x5 grid, basic operations</p>
                   </div>
                 </Label>
               </div>
@@ -59,7 +59,7 @@ export function SettingsModal({
                 <Label htmlFor="hard" className="flex-1 cursor-pointer">
                   <div>
                     <span className="font-medium text-card-foreground">Hard</span>
-                    <p className="text-sm text-muted-foreground">9x9 grid, complex equations</p>
+                    <p className="text-sm text-muted-foreground">9x9 grid, advanced equations</p>
                   </div>
                 </Label>
               </div>
