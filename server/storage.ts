@@ -1,6 +1,6 @@
-import { type User, type InsertUser, type Puzzle, type InsertPuzzle, type GameStats, type InsertGameStats, type GridCell, type CellType, users, puzzles, gameStats } from "@shared/schema";
+import { type User, type InsertUser, type Puzzle, type InsertPuzzle, type GameStats, type InsertGameStats, type GridCell, users, puzzles, gameStats } from "@shared/schema";
 import { randomUUID } from "crypto";
-import { db, isDatabaseAvailable } from "./db";
+import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
 import { generatePuzzle as generatePuzzleAlgorithm } from './puzzleGenerator';
 
