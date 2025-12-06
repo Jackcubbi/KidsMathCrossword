@@ -9,10 +9,16 @@
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
+    "db:push:dev": "cross-env NODE_ENV=development drizzle-kit push",
+    "db:push:prod": "cross-env NODE_ENV=production drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx server/seed-puzzles.ts"
+    "db:studio:dev": "cross-env NODE_ENV=development drizzle-kit studio",
+    "db:studio:prod": "cross-env NODE_ENV=production drizzle-kit studio",
+    "db:seed": "tsx server/seed-puzzles.ts",
+    "db:seed:dev": "cross-env NODE_ENV=development tsx server/seed-puzzles.ts",
+    "db:seed:prod": "cross-env NODE_ENV=production tsx server/seed-puzzles.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
