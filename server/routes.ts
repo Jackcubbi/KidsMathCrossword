@@ -55,23 +55,58 @@ export async function registerRoutes(app: Express): Promise<{ server: Server; st
       const { userId } = req.params;
       const stats = await storage.getGameStats(userId);
 
-      // Calculate aggregated statistics
-      const completedGames = stats.filter(s => s.isCompleted);
-      const totalSolved = completedGames.length;
-      const completionTimes = completedGames
-        .map(s => s.completionTime)
-        .filter(t => t !== null) as number[];
+      // Fetch puzzle details for all puzzles in stats
+      const puzzleIds = Array.from(new Set(stats.map(s => s.puzzleId).filter(Boolean)));
+      const puzzleDetailsPromises = puzzleIds.map(id => storage.getPuzzle(id!));
+      const puzzleDetails = await Promise.all(puzzleDetailsPromises);
 
-      const bestTime = completionTimes.length > 0 ? Math.min(...completionTimes) : 0;
-      const averageTime = completionTimes.length > 0 ?
-        Math.round(completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length) : 0;
-      const totalHints = stats.reduce((sum, s) => sum + (s.hintsUsed || 0), 0);
+      // Create a map of puzzleId to difficulty
+      const puzzleDifficultyMap = new Map<string, string>();
+      puzzleDetails.forEach(puzzle => {
+        if (puzzle) {
+          puzzleDifficultyMap.set(puzzle.id, puzzle.difficulty);
+        }
+      });
+
+      // Calculate per-difficulty statistics
+      const statsByDifficulty = {
+        easy: { totalSolved: 0, bestTime: 0, averageTime: 0, totalHints: 0 },
+        medium: { totalSolved: 0, bestTime: 0, averageTime: 0, totalHints: 0 },
+        hard: { totalSolved: 0, bestTime: 0, averageTime: 0, totalHints: 0 }
+      };
+
+      // Group stats by difficulty
+      const statsByDiff = {
+        easy: [] as typeof stats,
+        medium: [] as typeof stats,
+        hard: [] as typeof stats
+      };
+
+      stats.forEach(stat => {
+        const difficulty = puzzleDifficultyMap.get(stat.puzzleId || '');
+        if (difficulty === 'easy' || difficulty === 'medium' || difficulty === 'hard') {
+          statsByDiff[difficulty].push(stat);
+        }
+      });
+
+      // Calculate stats for each difficulty
+      Object.keys(statsByDiff).forEach((difficulty) => {
+        const diffKey = difficulty as 'easy' | 'medium' | 'hard';
+        const diffStats = statsByDiff[diffKey];
+        const completedGames = diffStats.filter(s => s.isCompleted);
+        const completionTimes = completedGames
+          .map(s => s.completionTime)
+          .filter(t => t !== null) as number[];
+
+        statsByDifficulty[diffKey].totalSolved = completedGames.length;
+        statsByDifficulty[diffKey].bestTime = completionTimes.length > 0 ? Math.min(...completionTimes) : 0;
+        statsByDifficulty[diffKey].averageTime = completionTimes.length > 0 ?
+          Math.round(completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length) : 0;
+        statsByDifficulty[diffKey].totalHints = diffStats.reduce((sum, s) => sum + (s.hintsUsed || 0), 0);
+      });
 
       res.json({
-        totalSolved,
-        bestTime,
-        averageTime,
-        totalHints,
+        byDifficulty: statsByDifficulty,
         recentGames: stats.slice(-10)
       });
     } catch (error) {
@@ -125,19 +160,12 @@ export async function registerRoutes(app: Express): Promise<{ server: Server; st
       const isValid = horizontalValid.every(eq => eq.isValid) &&
                      verticalValid.every(eq => eq.isValid);
 
-      // Log validation results for debugging
-      console.log('Validation Results:');
-      console.log('Horizontal:', horizontalValid);
-      console.log('Vertical:', verticalValid);
-      console.log('All Valid:', isValid);
-
       res.json({
         isValid,
         horizontalEquations: horizontalValid,
         verticalEquations: verticalValid
       });
     } catch (error) {
-      console.error('Validation error:', error);
       res.status(500).json({ message: "Failed to validate solution" });
     }
   });
@@ -148,8 +176,8 @@ export async function registerRoutes(app: Express): Promise<{ server: Server; st
 
 function validateHorizontalEquations(grid: any[][]) {
   const equations = [];
-  const gridSize = grid.length;
 
+  const gridSize = grid.length;
   // Helper function to evaluate with order of operations
   const evaluateEquation = (values: number[], operators: string[]): number => {
     let nums = [...values];
