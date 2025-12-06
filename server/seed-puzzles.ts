@@ -11,7 +11,7 @@ async function seedPuzzles() {
   console.log('Starting puzzle seeding...\n');
 
   if (!isDatabaseAvailable()) {
-    console.error('❌ Database not available. Please check your DATABASE_URL.');
+    console.error(' Database not available. Please check your DATABASE_URL!');
     process.exit(1);
   }
 
@@ -20,7 +20,7 @@ async function seedPuzzles() {
 
   try {
     for (const difficulty of difficulties) {
-      console.log(`\n🎯 Generating ${difficulty.toUpperCase()} puzzles...`);
+      console.log(`\n Generating ${difficulty.toUpperCase()} puzzles...`);
 
       for (let i = 1; i <= puzzlesPerDifficulty; i++) {
         try {
@@ -45,14 +45,14 @@ async function seedPuzzles() {
     console.log(`\nTotal puzzles created: ${difficulties.length * puzzlesPerDifficulty}`);
 
     // Show statistics
-    console.log('\n📊 Database Statistics:');
+    console.log('\n Database Statistics:');
     for (const difficulty of difficulties) {
       const puzzles = await storage.getPuzzlesByDifficulty(difficulty);
       console.log(`  ${difficulty.padEnd(6)}: ${puzzles.length} puzzles`);
     }
 
   } catch (error) {
-    console.error('\n❌ Error during seeding:', error);
+    console.error('\n Error during seeding:', error);
     process.exit(1);
   }
 
