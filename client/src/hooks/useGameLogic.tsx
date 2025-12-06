@@ -248,15 +248,22 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
           const values: number[] = [];
           const operators: string[] = [];
 
-          for (let col = 0; col < gridSize; col++) {
+          // Only iterate through even columns (0, 2, 4, 6...) for equation values
+          for (let col = 0; col < gridSize; col += 2) {
             const cell = cells[col];
             if (!cell) continue;
 
             if (cell.type === 'number' || cell.type === 'input') {
               const val = parseFloat(cell.value?.toString() || '0') || 0;
               values.push(val);
-            } else if (cell.type === 'operator' && cell.value !== '=') {
-              operators.push(cell.value?.toString() || '+');
+            }
+
+            // Get operator from the next column (odd column) if it exists
+            if (col + 1 < gridSize) {
+              const opCell = cells[col + 1];
+              if (opCell && opCell.type === 'operator' && opCell.value !== '=') {
+                operators.push(opCell.value?.toString() || '+');
+              }
             }
           }
 
@@ -344,15 +351,22 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
         const values: number[] = [];
         const operators: string[] = [];
 
-        for (let row = 0; row < gridSize; row++) {
+        // Only iterate through even rows (0, 2, 4, 6...) for equation values
+        for (let row = 0; row < gridSize; row += 2) {
           const cell = gameState.grid[row]?.[col];
           if (!cell) continue;
 
           if (cell.type === 'number' || cell.type === 'input') {
             const val = parseFloat(cell.value?.toString() || '0') || 0;
             values.push(val);
-          } else if (cell.type === 'operator' && cell.value !== '=') {
-            operators.push(cell.value?.toString() || '+');
+          }
+
+          // Get operator from the next row (odd row) if it exists
+          if (row + 1 < gridSize) {
+            const opCell = gameState.grid[row + 1]?.[col];
+            if (opCell && opCell.type === 'operator' && opCell.value !== '=') {
+              operators.push(opCell.value?.toString() || '+');
+            }
           }
         }
 
