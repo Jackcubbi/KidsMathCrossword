@@ -115,13 +115,13 @@ The game generates puzzles where:
 - ✅ Database persistence
 - ✅ Settings modal
 - ✅ Success celebration
+- ✅ User authentication
 
 **Planned Features**:
 
-- User authentication
 - Progress tracking
 - Leaderboards
-- Multiple difficulty levels
+- Multiple & complex difficulty levels
 - Daily challenges
 - Sound effects
 - Hint system
