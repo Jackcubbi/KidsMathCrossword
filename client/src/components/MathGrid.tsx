@@ -39,6 +39,19 @@ export function MathGrid({
     return `${difficultyName}\n${gridSize}x${gridSize} grid`;
   };
 
+  // Get placeholder equation based on grid size
+  const getPlaceholderEquation = () => {
+    const gridSize = grid.length;
+    if (gridSize === 5) {
+      return 'x + x = x';
+    } else if (gridSize === 7) {
+      return 'x + x + x = x';
+    } else if (gridSize === 9) {
+      return 'x + x = x + x = x';
+    }
+    return 'x + x + x = x';
+  };
+
   const renderCell = (cell: GridCell, row: number, col: number) => {
     const baseClasses = "w-16 h-16 flex items-center justify-center rounded-md border-2";
 
@@ -69,7 +82,6 @@ export function MathGrid({
 
       case 'input':
         return (
-
           <div
             key={`${row}-${col}`}
             className={`${baseClasses} bg-secondary border-secondary hover:bg-secondary/80 transition-colors cursor-pointer`}
@@ -141,7 +153,7 @@ export function MathGrid({
                     }`}
                   />
                   <span className="text-sm font-mono flex-1">
-                    Row {equation.row + 1}: {equation.equation}
+                    Row {equation.row + 1}: {disabled ? getPlaceholderEquation() : equation.equation}
                   </span>
                   {equation.isValid ? (
                     <Check className="text-primary text-sm" size={16} />
@@ -165,7 +177,7 @@ export function MathGrid({
                     }`}
                   />
                   <span className="text-sm font-mono flex-1">
-                    Col {equation.col + 1}: {equation.equation}
+                    Col {equation.col + 1}: {disabled ? getPlaceholderEquation() : equation.equation}
                   </span>
                   {equation.isValid ? (
                     <Check className="text-primary text-sm" size={16} />
