@@ -3,8 +3,10 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { apiRequest } from '@/lib/queryClient';
 import type { GridCell, GameState, Puzzle } from '@shared/schema';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') {
+  const { user } = useAuth();
   const [gameState, setGameState] = useState<GameState>({
     grid: [],
     difficulty,
@@ -32,7 +34,9 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
   // Create game session mutation
   const createGameSessionMutation = useMutation({
     mutationFn: async (puzzleId: string) => {
+      const userId = user?.id || null;
       const response = await apiRequest('POST', '/api/game-sessions', {
+        userId,
         puzzleId,
         hintsUsed: 0,
         isCompleted: false,
@@ -113,7 +117,8 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
         });
 
         // Invalidate stats query to update the sidebar
-        queryClient.invalidateQueries({ queryKey: ['/api/stats', 'default-user'] });
+        const userId = user?.id || 'default-user';
+        queryClient.invalidateQueries({ queryKey: ['/api/stats', userId] });
       }
 
       return result;
@@ -123,7 +128,7 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
     }
   };
 
-  const getHint = () => {
+  const getHint = async () => {
     if (!puzzle || !puzzle.solution) return;
 
     // Collect all empty editable cells
@@ -144,7 +149,15 @@ export function useGameLogic(difficulty: 'easy' | 'medium' | 'hard' = 'medium') 
       const { row, col } = emptyCells[randomIndex];
       const solutionValue = puzzle.solution[row][col].value;
       updateCell(row, col, solutionValue.toString());
-      setGameState(prev => ({ ...prev, hintsUsed: prev.hintsUsed + 1 }));
+      const newHintsUsed = gameState.hintsUsed + 1;
+      setGameState(prev => ({ ...prev, hintsUsed: newHintsUsed }));
+
+      // Update the game session with new hints count
+      if (gameSessionId) {
+        await updateGameSessionMutation.mutateAsync({
+          hintsUsed: newHintsUsed,
+        });
+      }
     }
   };
 
