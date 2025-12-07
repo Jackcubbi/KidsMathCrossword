@@ -10,9 +10,11 @@ import { SettingsModal } from '@/components/SettingsModal';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import { useTimer } from '@/hooks/useTimer';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import type { GridCell } from '@shared/schema';
 
 export default function Home() {
+  const { user } = useAuth();
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -33,10 +35,13 @@ export default function Home() {
   const { formattedTime, start, stop, reset, isRunning } = useTimer();
   const { toast } = useToast();
 
-  // Fetch user statistics
-  const { data: stats } = useQuery({
-    queryKey: ['/api/stats', 'default-user'],
+  // Fetch user statistics - use actual user ID if logged in, otherwise default-user
+  const userId = user?.id || 'default-user';
+  const { data: stats, refetch: refetchStats } = useQuery({
+    queryKey: ['/api/stats', userId],
     enabled: true,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   // Create placeholder grid that shows structure but hides numbers
@@ -57,13 +62,6 @@ export default function Home() {
   // Use placeholder grid when game hasn't started
   const displayGrid = gameStarted ? gameState.grid : createPlaceholderGrid(gameState.grid);
 
-  // Don't auto-start timer anymore - wait for Start button
-  // useEffect(() => {
-  //   if (gameState.grid.length > 0 && !gameState.isCompleted) {
-  //     start();
-  //   }
-  // }, [gameState.grid, gameState.isCompleted, start]);
-
   useEffect(() => {
     if (gameState.isCompleted) {
       stop();
@@ -78,6 +76,8 @@ export default function Home() {
       if (result.isValid) {
         // Stop the timer when puzzle is completed
         stop();
+        // Refetch stats to update sidebar
+        await queryClient.refetchQueries({ queryKey: ['/api/stats', userId] });
         // Show the success modal and mark as shown
         setShowSuccessModal(true);
         setHasShownSuccessModal(true);
@@ -95,10 +95,11 @@ export default function Home() {
     }
   };
 
-  const handleGetHint = () => {
+  const handleGetHint = async () => {
     if (!gameStarted) return;
 
-    getHint();
+    await getHint();
+    await queryClient.refetchQueries({ queryKey: ['/api/stats', userId] });
     toast({
       title: "Hint provided",
       description: "One cell has been filled for you.",
@@ -170,10 +171,11 @@ export default function Home() {
   const totalEquations = equationStatus.horizontal.length + equationStatus.vertical.length;
 
   const defaultStats = {
-    totalSolved: (stats as any)?.totalSolved || 0,
-    bestTime: (stats as any)?.bestTime ? `${Math.floor((stats as any).bestTime / 60).toString().padStart(2, '0')}:${((stats as any).bestTime % 60).toString().padStart(2, '0')}` : '00:00',
-    averageTime: (stats as any)?.averageTime ? `${Math.floor((stats as any).averageTime / 60).toString().padStart(2, '0')}:${((stats as any).averageTime % 60).toString().padStart(2, '0')}` : '00:00',
-    hintsUsed: gameState.hintsUsed,
+    byDifficulty: {
+      easy: (stats as any)?.byDifficulty?.easy || { totalSolved: 0, bestTime: 0, averageTime: 0, totalHints: 0 },
+      medium: (stats as any)?.byDifficulty?.medium || { totalSolved: 0, bestTime: 0, averageTime: 0, totalHints: 0 },
+      hard: (stats as any)?.byDifficulty?.hard || { totalSolved: 0, bestTime: 0, averageTime: 0, totalHints: 0 }
+    }
   };
 
   if (isLoading) {
@@ -220,6 +222,7 @@ export default function Home() {
             />
             <GameSidebar
               stats={defaultStats}
+              difficulty={difficulty}
             />
           </div>
         </div>
