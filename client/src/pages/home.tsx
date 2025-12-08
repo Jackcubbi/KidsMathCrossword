@@ -131,6 +131,9 @@ export default function Home() {
     stop();
     reset();
 
+    // Reset the game state to clear old data
+    resetGame();
+
     // Invalidate the puzzle query to fetch a new puzzle
     queryClient.invalidateQueries({ queryKey: ['/api/puzzles', difficulty] });
     setShowSuccessModal(false);
@@ -145,7 +148,18 @@ export default function Home() {
 
   const handleDifficultyChange = (newDifficulty: 'easy' | 'medium' | 'hard') => {
     setDifficulty(newDifficulty);
+    // Reset game state when difficulty changes
+    stop();
+    reset();
+    setGameStarted(false);
+    setShowSuccessModal(false);
+    setHasShownSuccessModal(false);
     // The useGameLogic hook will automatically fetch a new puzzle when difficulty changes
+
+    toast({
+      title: "Difficulty changed!",
+      description: `New ${newDifficulty} puzzle loaded. Click Start Game when ready.`,
+    });
   };
 
   const equationStatus = getEquationStatus();
