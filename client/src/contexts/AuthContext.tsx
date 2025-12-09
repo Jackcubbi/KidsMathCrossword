@@ -25,17 +25,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: authData, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
-      const response = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
+      try {
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
 
-      if (!response.ok) {
+        if (!response.ok) {
+          // Guest user - not an error, just not authenticated
+          return { user: null };
+        }
+
+        return response.json();
+      } catch (error) {
+        // Network error or other issue - treat as guest
         return { user: null };
       }
-
-      return response.json();
     },
     retry: false,
+    // Don't show error in console for 401 - it's expected for guests
+    meta: {
+      errorMessage: false,
+    },
   });
 
   useEffect(() => {
