@@ -98,22 +98,33 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    const { setupVite } = await import("./vite.js");
+  if (process.env.NODE_ENV === "development") {
+    // Use dynamic import with template to avoid bundling vite in production
+    const viteModule = "./vite.js";
+    const { setupVite } = await import(/* @vite-ignore */ viteModule);
     await setupVite(app, server);
   } else {
     // Production static file serving
     const path = await import("path");
+    const { fileURLToPath } = await import("url");
     const fs = await import("fs");
 
-    const distPath = path.resolve(import.meta.dirname, "public");
+    // Get the directory name in ESM
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+
+    // In production, static files are in dist/public
+    const distPath = path.resolve(__dirname, "public");
 
     if (!fs.existsSync(distPath)) {
+      log(`Build directory not found at: ${distPath}`, 'static');
+      log('Please run "npm run build" first', 'static');
       throw new Error(
         `Could not find the build directory: ${distPath}, make sure to build the client first`,
       );
     }
 
+    log(`Serving static files from: ${distPath}`, 'static');
     app.use(express.static(distPath));
 
     // fall through to index.html if the file doesn't exist
@@ -129,11 +140,7 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '5000', 10);
   const host = process.env.NODE_ENV === 'development' ? 'localhost' : '0.0.0.0';
 
-  const listenOptions = process.env.NODE_ENV === 'development'
-    ? { port, host }
-    : { port, host, reusePort: true };
-
-  server.listen(listenOptions, () => {
+  server.listen(port, host, () => {
     log(`serving on ${host}:${port}`);
   });
 })();
