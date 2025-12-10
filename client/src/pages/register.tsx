@@ -129,7 +129,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" variant="secondary" className="w-full" disabled={isLoading}>
               <UserPlus className="h-4 w-4 mr-2" />
               {isLoading ? "Creating account..." : "Create Account"}
             </Button>
@@ -143,7 +143,7 @@ export default function RegisterPage() {
 
             <div className="text-center text-sm text-muted-foreground">
               <a href="/" className="text-primary hover:underline">
-                Play as guest
+                Play as guest (Demo mode)
               </a>
             </div>
           </form>

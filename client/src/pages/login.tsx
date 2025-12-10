@@ -84,7 +84,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" variant="secondary" className="w-full" disabled={isLoading}>
               <LogIn className="h-4 w-4 mr-2" />
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
@@ -98,7 +98,7 @@ export default function LoginPage() {
 
             <div className="text-center text-sm text-muted-foreground">
               <a href="/" className="text-primary hover:underline">
-                Play as guest
+                Play as guest (Demo mode)
               </a>
             </div>
           </form>
