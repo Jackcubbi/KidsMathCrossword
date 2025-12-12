@@ -44,7 +44,7 @@ export function GameSidebar({ stats, difficulty }: GameSidebarProps) {
         <h3 className="text-lg font-bold text-card-foreground mb-4">{getGridTitle(difficulty)}</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Puzzles Solved</span>
+            <span className="text-muted-foreground">Solved:</span>
             <span className="font-bold text-card-foreground" data-testid="stat-total-solved">
               {currentStats.totalSolved}
             </span>
@@ -52,13 +52,13 @@ export function GameSidebar({ stats, difficulty }: GameSidebarProps) {
           {isAuthenticated && (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Best Time</span>
+                <span className="text-muted-foreground">Best:</span>
                 <span className="font-mono font-bold text-card-foreground" data-testid="stat-best-time">
                   {formatTime(currentStats.bestTime)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Average Time</span>
+                <span className="text-muted-foreground">Average:</span>
                 <span className="font-mono font-bold text-card-foreground" data-testid="stat-average-time">
                   {formatTime(currentStats.averageTime)}
                 </span>
@@ -66,7 +66,7 @@ export function GameSidebar({ stats, difficulty }: GameSidebarProps) {
             </>
           )}
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Hints Used</span>
+            <span className="text-muted-foreground">Hints Used:</span>
             <span className="font-bold text-card-foreground" data-testid="stat-hints-used">
               {currentStats.totalHints}
             </span>
