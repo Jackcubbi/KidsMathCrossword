@@ -207,6 +207,7 @@ export default function Home() {
               totalEquations={totalEquations}
               disabled={!gameStarted}
               difficulty={difficulty}
+              hintsUsed={gameState.hintsUsed}
             />
           </div>
 
