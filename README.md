@@ -1,6 +1,7 @@
 # Math Crossword for Kids 🧮✨
 
 An interactive educational game that combines math practice with crossword puzzles, helping children improve their arithmetic skills through engaging gameplay.
+<img width="880" height="889" alt="image" src="https://github.com/user-attachments/assets/0478f4f5-d86e-472a-b0fc-9d50746357e5" />
 
 ## Features
 
